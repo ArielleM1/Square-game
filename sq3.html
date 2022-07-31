@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+		<style>
+			.objects {
+				max-width: 100px;
+				max-height: 100px;
+			}
+			.objects:hover {
+				cursor: pointer;
+				z-index: 1000;
+				filter: contrast(150%);
+			}
+		</style>
+	</head>
+	<body>
+		<div class="gameArea"></div>
+		<script>
+			const gameArea = document.querySelector(".gameArea");
+			// document.addEventListener("DOMContentLoaded", ready);
+			let flag = false;
+			let step = 0;
+			let blueSquare = Image;
+
+			// function init() {
+			// 	gameArea.innerHTML = "";
+			// 	const temp = `Ваш счет: ${scores} очков. `;
+			// 	scoreBoard = createElement(gameArea, "div", temp, "scoreboard");
+			// 	gameBtn = createElement(gameArea, "button", "Start", "btn");
+			// 	gameBtn.addEventListener("click", () => {
+			// 		if (gameBtn.textContent == "Start") {
+			// 			inPlay = true;
+			// 			ani = requestAnimationFrame(startGame);
+			// 			gameBtn.textContent = "Stop";
+			// 		} else {
+			// 			cancelAnimationFrame(ani);
+			// 			gameBtn.textContent = "Start";
+			// 			inPlay = false;
+			// 		}
+			// 	});
+			// 	const main = createNewElement(gameArea, "div", "");
+			// }
+
+			// массив игровых объектов
+			let objects = [
+				"img/obj_round_blue.png",
+				"img/obj_round_green.png",
+				"img/obj_round_red.png",
+				"img/obj_round_yellow.png",
+				"img/obj_round_orange.png",
+				"img/obj_square_blue.png",
+				"img/obj_square_green.png",
+				"img/obj_square_red.png",
+				"img/o bj_square_yellow.png",
+				"img/obj_square_orange.png",
+				"img/obj_trian_blue.png",
+				"img/obj_trian_green.png",
+				"img/obj_trian_red.png",
+				"img/o bj_trian_yellow.png",
+				"img/obj_trian_orange.png",
+			];
+
+			// obj_round_blue("img/obj_round_blue.png"),
+			// obj_round_green("img/obj_round_green.png"),
+			// obj_round_red("img/obj_round_red.png"),
+			// obj_round_yellow("img/o bj_round_yellow.png"),
+			// obj_round_orange("img/obj_round_orange.png"),
+			// obj_square_blue("img/obj_square_blue.png"),
+			// obj_square_green("img/obj_square_green.png"),
+			// obj_square_red("img/obj_square_red.png"),
+			// obj_square_yellow("img/o bj_square_yellow.png"),
+			// obj_square_orange("img/obj_square_orange.png"),
+			// obj_trian_blue("img/obj_trian_blue.png"),
+			// obj_trian_green("img/obj_trian_green.png"),
+			// obj_trian_red("img/obj_trian_red.png"),
+			// obj_trian_yellow("img/o bj_trian_yellow.png"),
+			// obj_trian_orange("img/obj_trian_orange.png"),
+
+			// рандом из игровых объектов
+			let randomObject;
+			randomObject = objects[Math.floor(getRandom(0, objects.length))];
+			console.log(randomObject);
+
+			// рандом движения по экрану
+			let startPoint;
+			startPoint = Math.floor(getRandom(0, window.innerWidth));
+			console.log(startPoint);
+
+			// движение полета объектов
+			function animation() {
+				flag = true;
+				//Двигаем сверху вниз (перепроверить!!! и надо ли убивать обект? может спрятать?)
+				if (gameArea.Height + 50 > 0 && flag) {
+					let left = startPoint + "px";
+					randomObject.style.top = "0px";
+					randomObject.style.left = left;
+					randomObject.style.transform = "scaleY(1)";
+					randomObject.hidden = false;
+					step += 1;
+				} else {
+					// добавляем в массив еще объекты
+					objects.push(randomObject);
+					// console.log(objects);
+					flag = false;
+					// this.randomObject.hidden = true;
+				}
+				randomObject.style.top = step + "px";
+			}
+			setInterval(animation, 1);
+
+			// убиваем использованные объекты
+			// let hasDead = false;
+			// for (let i = 0; i < objects.length; i++) {
+			// 	objects[i].Update();
+			// 	if (objects[i].dead) {
+			// 		hasDead = true;
+			// 	}
+			// }
+
+			// if (hasDead) {
+			// 	objects.shift();
+			// }
+
+			// функция нажатия на квадрат и его исчезновения
+			// ДОПИСАТЬ!!!
+			// square.onclick = hideSquare;
+			function hideSquare() {
+				square.hidden = true;
+				// square.style.display = "none";
+				scores = scores + 1;
+			}
+			// Обновление счета
+			function updateScore() {
+				const temp = `Ваш счет: ${scores} очков!`;
+				scoreBoard.textContent = temp;
+			}
+			// ДОПИСАТЬ!!! если игрок нажимает не на квадрат
+			// round.onclick = endGame;
+			// triangle.onclick = endGame;
+			// element1.onclick = endGame;
+
+			function endGame() {
+				let gameLife = 3;
+				if (gameLife > 0) {
+					gameLife = gameLife - 1;
+				} else {
+					alert("Вы проиграли!");
+				}
+			}
+
+			// функция рандома
+			function getRandom(min, max) {
+				return Math.random() * (max - min) + min;
+			}
+		</script>
+	</body>
+</html>
