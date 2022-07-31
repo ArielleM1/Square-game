@@ -63,18 +63,28 @@
 				filter: contrast(150%);
 			}
 			/* End Стили летающих геометрическиз фигур */
+
+			.scoreboard {
+				text-transform: uppercase;
+				font-size: 1em;
+				text-align: center;
+				background-color: rgb(2, 167, 250);
+				color: rgb(0, 18, 67);
+				padding: 10px;
+			}
 		</style>
 	</head>
 	<body>
+		<!-- <div class="gameArea"></div> -->
 		<div class="container">
 			<div class="row">
-				<div class="col-md-4 justify-content-center mt-2 table-bordered">
-					<p>а тут что будет - пока не придумала</p>
+				<div class="col-md-4 justify-content-center mt-2">
+					<button class="btn btn-lg btn-primary" onclick="animation()">Start</button>
 				</div>
-				<div class="col-md-4 justify-content-center mt-2 table-bordered">
-					<p>здесь будет прогресс бар</p>
+				<div class="col-md-4 justify-content-center mt-2 scoreboard">
+					<p>Scores</p>
 				</div>
-				<div class="col-md-4 justify-content-center mt-2 table-bordered">
+				<div class="col-md-4 justify-content-center mt-2">
 					<p>здесь будет количество жизней</p>
 				</div>
 			</div>
@@ -82,19 +92,29 @@
 		<div class="container gamefield">
 			<div class="row">
 				<div class="col-md-12">
-					<!-- <div class="justify-content-center m-5 element1 objects dead='false'"></div> -->
+					<div class="justify-content-center m-5 element1 objects" hidden></div>
 					<div
 						onclick="hideSquare()"
 						class="justify-content-center m-5 square objects dead='false'"
+						hidden
 					></div>
-					<div class="justify-content-center m-5 round objects dead='false'"></div>
-					<div class="justify-content-center m-5 triangle objects dead='false'"></div>
+					<div
+						onclick="hideRound()"
+						class="justify-content-center m-5 round objects dead='false'"
+						hidden
+					></div>
+					<div
+						onclick="hideTriangle()"
+						class="justify-content-center m-5 triangle objects dead='false'"
+						hidden
+					></div>
 				</div>
 			</div>
 		</div>
 
 		<script>
 			// даю название объектам для игры
+			// const gameArea = document.querySelector(".gameArea");
 			let square = document.getElementsByClassName("square");
 			let round = document.getElementsByClassName("round");
 			let triangle = document.getElementsByClassName("triangle");
@@ -104,17 +124,22 @@
 			let scores = 0;
 			// let objects;
 
+			// добавляем очки и жизни
+			// gameArea.innerHTML = "";
+
+			// let scoreBoard = document.createElement("div");
+			// div.classList.add("scoreBoard");
+			// const temp = `Score ${scores}`;
+
+			// gameBtn = createNewElement(gameArea, "button", "Start", "btn");
+			// gameBtn.addEventListener("click", () => {
+			// добавляем дивы для объектов
+
 			// массив игровых объектов
 			let objects = [square, round, triangle, element1];
 
 			// добавляем в массив новые объекты - надо ли????
 			// objects.push(square, round, triangle, element1);
-
-			// отдельно все работает
-			// number1 = getRandom(0, objects.length);
-			// number2 = Math.floor(number1);
-			// console.log(number1);
-			// console.log(number2);
 
 			// рандом из игровых объектов
 			let showObject;
@@ -123,21 +148,25 @@
 
 			// рандом движения по экрану
 			let startPoint;
-			startPoint = getRandom(0, window.innerWidth);
-			// console.log(startPoint);
+			startPoint = Math.floor(getRandom(0, window.innerWidth));
+			console.log(startPoint);
 
 			// движение полета объектов
-			// function animation() {
-			// 	//Двигаем сверху вниз (перепроверить!!! и надо ли убивать обект? может спрятать?)
-			// 	if (window.innerHeight + 50 > 0) {
-			// 		showObject.style.transform = "scaleY(1)";
-			// 		step += 1;
-			// 	} else {
-			// 		this.objects[i].dead = true;
-			// 	}
-			// 	objects[i].style.top = step + "px";
-			// }
-			// setInterval(animation, 1);
+			function animation() {
+				//Двигаем сверху вниз (перепроверить!!! и надо ли убивать обект? может спрятать?)
+				if (window.innerHeight + 50 > 0) {
+					let left = startPoint + "px";
+					showObject.style.top = "0px";
+					showObject.style.left = left;
+					showObject.style.transform = "scaleY(1)";
+					showObject.hidden = false;
+					step += 1;
+				} else {
+					this.showObject.dead = true;
+				}
+				showObject.style.top = step + "px";
+			}
+			setInterval(animation, 1);
 
 			// убиваем использованные объекты
 			// let hasDead = false;
@@ -158,7 +187,7 @@
 			function hideSquare() {
 				square.hidden = true;
 				// square.style.display = "none";
-				// scores = scores + 1;
+				scores = scores + 1;
 			}
 			// если игрок нажимает не на квадрат
 			round.onclick = endGame;
