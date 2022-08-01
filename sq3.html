@@ -43,27 +43,35 @@
 		<div class="gameArea"></div>
 		<script>
 			const gameArea = document.querySelector(".gameArea");
-			// document.addEventListener("DOMContentLoaded", init);
+			document.addEventListener("DOMContentLoaded", init);
 			let flag = false;
-			let step = 0;
-			let scores = 0;
+			// let step = 0;
+			// let scores = 0;
 			let gameLife = 3;
-			let inPlay;
+			// let inPlay;
+			const game = {
+				// arr: [],
+				animation: {},
+				inPlay: false,
+				gameBtn: {},
+				scores: 0,
+				step: 0,
+			};
 
 			function init() {
 				gameArea.innerHTML = "";
-				const temp = `Ваш счет: ${scores} очков. `;
-				scoreBoard = createElement(gameArea, "div", temp, "scoreboard");
-				gameBtn = createElement(gameArea, "button", "Start", "btn");
-				gameBtn.addEventListener("click", () => {
-					if (gameBtn.textContent == "Start") {
-						inPlay = true;
-						animation = requestAnimationFrame(startGame);
-						gameBtn.textContent = "Stop";
+				const temp = `Ваш счет: ${game.scores} очков. `;
+				game.scoreBoard = createNewElement(gameArea, "div", temp, "scoreboard");
+				game.gameBtn = createNewElement(gameArea, "button", "Start", "btn");
+				game.gameBtn.addEventListener("click", () => {
+					if (game.gameBtn.textContent == "Start") {
+						game.inPlay = true;
+						game.animation = requestAnimationFrame(startGame);
+						game.gameBtn.textContent = "Stop";
 					} else {
-						cancelAnimationFrame(animation);
-						gameBtn.textContent = "Start";
-						inPlay = false;
+						cancelAnimationFrame(game.animation);
+						game.gameBtn.textContent = "Start";
+						game.inPlay = false;
 					}
 				});
 				const main = createNewElement(gameArea, "div", "", "gridContainer");
@@ -117,27 +125,30 @@
 
 			// движение полета объектов
 			function startGame() {
-				flag = true;
-				//Двигаем сверху вниз (перепроверить!!! и надо ли убивать обект? может спрятать?)
-				if (gameArea.Height + 50 > 0 && flag) {
-					let left = startPoint + "px";
-					randomObject.style.top = "0px";
-					randomObject.style.left = left;
-					randomObject.style.transform = "scaleY(1)";
-					randomObject.hidden = false;
-					step += 1;
-				} else {
-					// добавляем в массив еще объекты
-					objects.push(randomObject);
+				if (game.inPlay) {
+					flag = true;
+					//Двигаем сверху вниз (перепроверить!!! и надо ли убивать обект? может спрятать?)
+					if (gameArea.Height + 50 > 0 && flag) {
+						let left = startPoint + "px";
+						randomObject.style.top = "0px";
+						randomObject.style.left = left;
+						randomObject.style.transform = "scaleY(1)";
+						randomObject.hidden = false;
+						step += 1;
+					} else {
+						// добавляем в массив еще объекты
+						objects.push(randomObject);
 
-					// console.log(objects);
-					flag = false;
-					// this.randomObject.hidden = true;
+						// console.log(objects);
+						flag = false;
+						// this.randomObject.hidden = true;
+					}
+					this.randomObject.style.top = step + "px";
+					animation = requestAnimationFrame(startGame);
+					hideSquare();
+					wrongClick();
+					updateScore();
 				}
-				this.randomObject.style.top = step + "px";
-				animation = requestAnimationFrame(startGame);
-				hideSquare();
-				wrongClick();
 			}
 			// setInterval(animation, 1);
 
@@ -161,12 +172,12 @@
 				gameArea.innerHTML += `<img src="/img/obj_square${square}.png" onclick="this.style.display = 'none'"> `;
 				// square.hidden = true;
 				// square.style.display = "none";
-				scores = scores + 1;
+				game.scores = game.scores + 1;
 			}
 			// ДОПИСАТЬ!!! Обновление счета
 			function updateScore() {
-				const temp = `Ваш счет: ${scores} очков!`;
-				scoreBoard.textContent = temp;
+				const temp = `Ваш счет: ${game.scores} очков!`;
+				game.scoreBoard.textContent = temp;
 			}
 			// Проверить!!! если игрок нажимает не на квадрат, объект исчезант и минус 1 жизнь
 			function wrongClick() {
