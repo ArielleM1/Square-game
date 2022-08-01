@@ -15,37 +15,62 @@
 				z-index: 1000;
 				filter: contrast(150%);
 			}
+			* {
+				box-sizing: border-box;
+			}
+
+			.scoreboard {
+				text-transform: uppercase;
+				font-size: 2em;
+				text-align: center;
+				background-color: rgb(4, 74, 213);
+				color: white;
+				padding: 10px;
+			}
+			.btn {
+				display: block;
+				padding: 10px;
+				margin: 10px auto;
+				width: 25%;
+				font-size: 2em;
+			}
+			.gridContainer {
+				display: grid;
+			}
 		</style>
 	</head>
 	<body>
 		<div class="gameArea"></div>
 		<script>
 			const gameArea = document.querySelector(".gameArea");
-			// document.addEventListener("DOMContentLoaded", ready);
+			// document.addEventListener("DOMContentLoaded", init);
 			let flag = false;
 			let step = 0;
-			let blueSquare = Image;
+			let scores = 0;
+			let gameLife = 3;
+			let inPlay;
 
-			// function init() {
-			// 	gameArea.innerHTML = "";
-			// 	const temp = `Ваш счет: ${scores} очков. `;
-			// 	scoreBoard = createElement(gameArea, "div", temp, "scoreboard");
-			// 	gameBtn = createElement(gameArea, "button", "Start", "btn");
-			// 	gameBtn.addEventListener("click", () => {
-			// 		if (gameBtn.textContent == "Start") {
-			// 			inPlay = true;
-			// 			ani = requestAnimationFrame(startGame);
-			// 			gameBtn.textContent = "Stop";
-			// 		} else {
-			// 			cancelAnimationFrame(ani);
-			// 			gameBtn.textContent = "Start";
-			// 			inPlay = false;
-			// 		}
-			// 	});
-			// 	const main = createNewElement(gameArea, "div", "");
-			// }
+			function init() {
+				gameArea.innerHTML = "";
+				const temp = `Ваш счет: ${scores} очков. `;
+				scoreBoard = createElement(gameArea, "div", temp, "scoreboard");
+				gameBtn = createElement(gameArea, "button", "Start", "btn");
+				gameBtn.addEventListener("click", () => {
+					if (gameBtn.textContent == "Start") {
+						inPlay = true;
+						animation = requestAnimationFrame(startGame);
+						gameBtn.textContent = "Stop";
+					} else {
+						cancelAnimationFrame(animation);
+						gameBtn.textContent = "Start";
+						inPlay = false;
+					}
+				});
+				const main = createNewElement(gameArea, "div", "", "gridContainer");
+				buildGrid(main);
+			}
 
-			// массив игровых объектов
+			//Готово:  массив игровых объектов
 			let objects = [
 				"img/obj_round_blue.png",
 				"img/obj_round_green.png",
@@ -80,18 +105,18 @@
 			// obj_trian_yellow("img/o bj_trian_yellow.png"),
 			// obj_trian_orange("img/obj_trian_orange.png"),
 
-			// рандом из игровых объектов
+			//Готово:  рандом из игровых объектов
 			let randomObject;
 			randomObject = objects[Math.floor(getRandom(0, objects.length))];
 			console.log(randomObject);
 
-			// рандом движения по экрану
+			//Готово:  рандом движения по экрану
 			let startPoint;
 			startPoint = Math.floor(getRandom(0, window.innerWidth));
 			console.log(startPoint);
 
 			// движение полета объектов
-			function animation() {
+			function startGame() {
 				flag = true;
 				//Двигаем сверху вниз (перепроверить!!! и надо ли убивать обект? может спрятать?)
 				if (gameArea.Height + 50 > 0 && flag) {
@@ -104,13 +129,17 @@
 				} else {
 					// добавляем в массив еще объекты
 					objects.push(randomObject);
+
 					// console.log(objects);
 					flag = false;
 					// this.randomObject.hidden = true;
 				}
-				randomObject.style.top = step + "px";
+				this.randomObject.style.top = step + "px";
+				animation = requestAnimationFrame(startGame);
+				hideSquare();
+				wrongClick();
 			}
-			setInterval(animation, 1);
+			// setInterval(animation, 1);
 
 			// убиваем использованные объекты
 			// let hasDead = false;
@@ -122,37 +151,40 @@
 			// }
 
 			// if (hasDead) {
-			// 	objects.shift();
+			// 	objects.shift(); тут вопрос, так как убивать первый эелмент нет смысла, используется же что-то рандомное.... может просто убивать все элементы из массива? а потом пушить их заново?
 			// }
 
 			// функция нажатия на квадрат и его исчезновения
-			// ДОПИСАТЬ!!!
-			// square.onclick = hideSquare;
+			// Проверить!!!
 			function hideSquare() {
-				square.hidden = true;
+				let square;
+				gameArea.innerHTML += `<img src="/img/obj_square${square}.png" onclick="this.style.display = 'none'"> `;
+				// square.hidden = true;
 				// square.style.display = "none";
 				scores = scores + 1;
 			}
-			// Обновление счета
+			// ДОПИСАТЬ!!! Обновление счета
 			function updateScore() {
 				const temp = `Ваш счет: ${scores} очков!`;
 				scoreBoard.textContent = temp;
 			}
-			// ДОПИСАТЬ!!! если игрок нажимает не на квадрат
-			// round.onclick = endGame;
-			// triangle.onclick = endGame;
-			// element1.onclick = endGame;
-
-			function endGame() {
-				let gameLife = 3;
+			// Проверить!!! если игрок нажимает не на квадрат, объект исчезант и минус 1 жизнь
+			function wrongClick() {
+				let round;
+				let triangle;
+				gameArea.innerHTML += `<img src="/img/obj_round${round}.png" onclick="this.style.display = 'none'">`;
+				gameArea.innerHTML += `<img src="/img/obj_trian${triangle}.png" onclick="this.style.display = 'none'">`;
 				if (gameLife > 0) {
 					gameLife = gameLife - 1;
+					alert("Упс! Вы промахнулись! -1 жизнь...");
 				} else {
 					alert("Вы проиграли!");
 				}
 			}
 
-			// функция рандома
+			// ДОПИСАТЬ!!! вывод жизней на экран
+
+			// Готово: функция рандома
 			function getRandom(min, max) {
 				return Math.random() * (max - min) + min;
 			}
