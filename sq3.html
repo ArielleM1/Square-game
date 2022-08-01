@@ -23,8 +23,8 @@
 				text-transform: uppercase;
 				font-size: 2em;
 				text-align: center;
-				background-color: rgb(4, 74, 213);
-				color: white;
+				background-color: rgb(2, 167, 250);
+				color: rgb(0, 18, 67);
 				padding: 10px;
 			}
 			.btn {
@@ -75,7 +75,7 @@
 					}
 				});
 				const main = createNewElement(gameArea, "div", "", "gridContainer");
-				buildGrid(main);
+				// buildGrid(main);
 			}
 
 			//Готово:  массив игровых объектов
@@ -198,6 +198,15 @@
 			// Готово: функция рандома
 			function getRandom(min, max) {
 				return Math.random() * (max - min) + min;
+			}
+
+			// Готово: функция создания нового элемента
+			function createNewElement(parent, ele, html, myClass) {
+				const el = document.createElement(ele);
+				el.classList.add(myClass);
+				el.innerHTML = html;
+				parent.append(el);
+				return el;
 			}
 		</script>
 	</body>
