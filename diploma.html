@@ -4,22 +4,37 @@
 		<meta charset="UTF-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Document</title>
+		<title>Squares and rounds</title>
 		<style>
-			.objects {
-				max-width: 100px;
-				max-height: 100px;
-			}
-			.objects:hover {
-				cursor: pointer;
-				z-index: 1000;
-				filter: contrast(150%);
-			}
 			* {
 				box-sizing: border-box;
 			}
 
-			.scoreboard {
+			body {
+				margin: 0;
+				font-family: Arial, Helvetica, sans-serif;
+			}
+			h1 {
+				text-align: center;
+				margin-top: 3em;
+				color: rgb(0, 18, 67);
+				text-shadow: 2px 2px 2px rgb(2, 167, 250);
+				font-weight: 500;
+			}
+
+			.game {
+				height: 100vh;
+				display: grid;
+				grid-template-areas:
+					"start-stop-button scoreboard"
+					"canvas canvas";
+				grid-template-columns: auto 1fr;
+				grid-template-rows: auto 1fr;
+				gap: 2px 10px;
+			}
+
+			.game .scoreboard {
+				grid-area: scoreboard;
 				text-transform: uppercase;
 				font-size: 2em;
 				text-align: center;
@@ -27,187 +42,232 @@
 				color: rgb(0, 18, 67);
 				padding: 10px;
 			}
-			.btn {
+			.game .start-stop-button {
+				grid-area: start-stop-button;
 				display: block;
 				padding: 10px;
-				margin: 10px auto;
-				width: 25%;
+				width: 200px;
 				font-size: 2em;
 			}
-			.gridContainer {
-				display: grid;
+			.game .canvas {
+				grid-area: canvas;
+				position: relative;
+				background-color: lightsteelblue;
+			}
+
+			.object {
+				--size: 50px;
+				position: absolute;
+				left: calc((100% - var(--size)) * var(--x));
+				top: calc((100% - var(--size)) * var(--y));
+				width: var(--size);
+				height: var(--size);
+				background-color: var(--color);
+				cursor: pointer;
+				box-shadow: 0 0 1px 1px black;
+			}
+			.object:hover {
+				filter: contrast(150%);
+			}
+			.object[data-type="circle"] {
+				border-radius: 50%;
+			}
+			.object[data-type="triangle"] {
+				border: calc(var(--size) / 2) solid transparent;
+				border-top-width: 0;
+				border-bottom-width: var(--size);
+				border-bottom-color: var(--color);
+				background-color: transparent;
+				box-shadow: 0 0 1px 1px transparent;
+			}
+			@media (max-width: 560px) {
+				.game {
+					grid-template-rows: 50px auto;
+					gap: 2px 5px;
+				}
+				.game .start-stop-button {
+					padding: 5px;
+					width: 100px;
+					font-size: 1em;
+				}
+				.game .scoreboard {
+					font-size: 1em;
+					padding: 5px;
+				}
 			}
 		</style>
 	</head>
 	<body>
-		<div class="gameArea"></div>
+		<div class="game">
+			<div class="scoreboard">
+				Ваш счет: <span class="scores">0</span> очков.<br />
+				Жизней: <span class="lifes">0</span>.
+			</div>
+			<button class="start-stop-button">Start</button>
+			<div class="canvas"><h1>Поймай квадрат</h1></div>
+		</div>
 		<script>
-			const gameArea = document.querySelector(".gameArea");
-			document.addEventListener("DOMContentLoaded", init);
-			let flag = false;
-			// let step = 0;
-			// let scores = 0;
-			let gameLife = 3;
-			// let inPlay;
-			const game = {
-				// arr: [],
-				animation: {},
-				inPlay: false,
-				gameBtn: {},
+			const gameEl = document.querySelector(".game");
+			const gameCanvasEl = gameEl.querySelector(".canvas");
+			const gameStartStopEl = gameEl.querySelector(".start-stop-button");
+			const objectTypes = ["square", "circle", "triangle"];
+			const objectColors = [
+				"blue",
+				"lime",
+				"deeppink",
+				"darkviolet",
+				"deepskyblue",
+				"yellow",
+				"orange",
+			];
+			const objectCount = 20;
+			const startGameLifes = 3;
+			// конструктор игры
+			let game = {
 				scores: 0,
-				step: 0,
+				lifes: startGameLifes,
+				inPlay: false,
+				raf: null,
+				objects: [],
 			};
 
-			function init() {
-				gameArea.innerHTML = "";
-				const temp = `Ваш счет: ${game.scores} очков. `;
-				game.scoreBoard = createNewElement(gameArea, "div", temp, "scoreboard");
-				game.gameBtn = createNewElement(gameArea, "button", "Start", "btn");
-				game.gameBtn.addEventListener("click", () => {
-					if (game.gameBtn.textContent == "Start") {
-						game.inPlay = true;
-						game.animation = requestAnimationFrame(startGame);
-						game.gameBtn.textContent = "Stop";
+			//функция создания рандомных объектов
+			function createObject() {
+				const random = (min, max) => min + Math.round(Math.random() * (max - min));
+				//рандом движения по экрану: направление и скорость
+				const object = {
+					el: document.createElement("div"),
+					x: Math.random(),
+					xv: (random(-10, 10) || 5) / 2000,
+					y: Math.random(),
+					yv: (random(-10, 10) || 5) / 2000,
+				};
+				object.el.className = "object";
+				// рандом из игровых объектов
+				object.el.dataset.type = objectTypes[random(0, objectTypes.length - 1)];
+				// рандом из цвета
+				object.el.style.setProperty("--color", objectColors[random(0, objectColors.length - 1)]);
+				// переменные с префиксом для использования по всему документу
+				object.el.style.setProperty("--x", object.x);
+				object.el.style.setProperty("--y", object.y);
+				// удаляем объект по клику (создаём новый массив со всеми элементами, прошедшими проверку)
+				object.el.addEventListener("mousedown", () => {
+					game.objects = game.objects.filter((item) => item !== object);
+					object.el.remove();
+
+					if (object.el.dataset.type === "square") {
+						game.scores++;
+						// если квардратов нет, обновляем поле
+						if (!hasSquares()) {
+							resetObjects();
+						}
 					} else {
-						cancelAnimationFrame(game.animation);
-						game.gameBtn.textContent = "Start";
-						game.inPlay = false;
+						game.lifes--;
+						if (game.lifes === 0) {
+							stopGame();
+							alert("Вы проиграли!");
+							return;
+						}
 					}
+
+					updateGameState();
 				});
-				const main = createNewElement(gameArea, "div", "", "gridContainer");
-				// buildGrid(main);
+
+				return object;
 			}
 
-			//Готово:  массив игровых объектов
-			let objects = [
-				"img/obj_round_blue.png",
-				"img/obj_round_green.png",
-				"img/obj_round_red.png",
-				"img/obj_round_yellow.png",
-				"img/obj_round_orange.png",
-				"img/obj_square_blue.png",
-				"img/obj_square_green.png",
-				"img/obj_square_red.png",
-				"img/o bj_square_yellow.png",
-				"img/obj_square_orange.png",
-				"img/obj_trian_blue.png",
-				"img/obj_trian_green.png",
-				"img/obj_trian_red.png",
-				"img/o bj_trian_yellow.png",
-				"img/obj_trian_orange.png",
-			];
-
-			// obj_round_blue("img/obj_round_blue.png"),
-			// obj_round_green("img/obj_round_green.png"),
-			// obj_round_red("img/obj_round_red.png"),
-			// obj_round_yellow("img/o bj_round_yellow.png"),
-			// obj_round_orange("img/obj_round_orange.png"),
-			// obj_square_blue("img/obj_square_blue.png"),
-			// obj_square_green("img/obj_square_green.png"),
-			// obj_square_red("img/obj_square_red.png"),
-			// obj_square_yellow("img/o bj_square_yellow.png"),
-			// obj_square_orange("img/obj_square_orange.png"),
-			// obj_trian_blue("img/obj_trian_blue.png"),
-			// obj_trian_green("img/obj_trian_green.png"),
-			// obj_trian_red("img/obj_trian_red.png"),
-			// obj_trian_yellow("img/o bj_trian_yellow.png"),
-			// obj_trian_orange("img/obj_trian_orange.png"),
-
-			//Готово:  рандом из игровых объектов
-			let randomObject;
-			randomObject = objects[Math.floor(getRandom(0, objects.length))];
-			console.log(randomObject);
-
-			//Готово:  рандом движения по экрану
-			let startPoint;
-			startPoint = Math.floor(getRandom(0, window.innerWidth));
-			console.log(startPoint);
-
-			// движение полета объектов
 			function startGame() {
 				if (game.inPlay) {
-					flag = true;
-					//Двигаем сверху вниз (перепроверить!!! и надо ли убивать обект? может спрятать?)
-					if (gameArea.Height + 50 > 0 && flag) {
-						let left = startPoint + "px";
-						randomObject.style.top = "0px";
-						randomObject.style.left = left;
-						randomObject.style.transform = "scaleY(1)";
-						randomObject.hidden = false;
-						step += 1;
-					} else {
-						// добавляем в массив еще объекты
-						objects.push(randomObject);
+					return;
+				}
 
-						// console.log(objects);
-						flag = false;
-						// this.randomObject.hidden = true;
+				game.inPlay = true;
+				game.scores = 0;
+				game.lifes = startGameLifes;
+
+				resetObjects();
+				updateGameState();
+				run();
+			}
+			// проверяем на наличие квадратов через DOM
+			function hasSquares() {
+				return game.objects.some((item) => item.el.dataset.type === "square");
+			}
+
+			// обновляем игровое поле
+			function resetObjects() {
+				gameCanvasEl.innerHTML = "";
+				game.objects = [];
+
+				for (let i = 0; i < objectCount; i++) {
+					const object = createObject();
+
+					game.objects.push(object);
+					gameCanvasEl.append(object.el);
+				}
+
+				if (!hasSquares()) {
+					resetObjects();
+				}
+			}
+
+			function run() {
+				game.raf = requestAnimationFrame(run);
+
+				for (const object of game.objects) {
+					// точка старта и скорость
+					object.x = object.x + object.xv;
+					object.y = object.y + object.yv;
+					// если выходит за рамки слева - разворачиваем
+					if (object.x < 0) {
+						object.x = -object.x;
+						object.xv = -object.xv;
 					}
-					this.randomObject.style.top = step + "px";
-					animation = requestAnimationFrame(startGame);
-					hideSquare();
-					wrongClick();
-					updateScore();
+					// если выходит за рамки справа - разворачиваем
+					if (object.x > 1) {
+						object.x = 1 - (object.x - 1);
+						object.xv = -object.xv;
+					}
+					// если выходит за рамки сверху - разворачиваем
+					if (object.y < 0) {
+						object.y = -object.y;
+						object.yv = -object.yv;
+					}
+					// если выходит за рамки снизу - разворачиваем
+					if (object.y > 1) {
+						object.y = 1 - (object.y - 1);
+						object.yv = -object.yv;
+					}
+					// кастомное свойство стиля
+					object.el.style.setProperty("--x", object.x);
+					object.el.style.setProperty("--y", object.y);
 				}
 			}
-			// setInterval(animation, 1);
+			// проверяем флаг, меняем его и останавливем игру
+			function stopGame() {
+				if (!game.inPlay) {
+					return;
+				}
 
-			// убиваем использованные объекты
-			// let hasDead = false;
-			// for (let i = 0; i < objects.length; i++) {
-			// 	objects[i].Update();
-			// 	if (objects[i].dead) {
-			// 		hasDead = true;
-			// 	}
-			// }
-
-			// if (hasDead) {
-			// 	objects.shift(); тут вопрос, так как убивать первый эелмент нет смысла, используется же что-то рандомное.... может просто убивать все элементы из массива? а потом пушить их заново?
-			// }
-
-			// функция нажатия на квадрат и его исчезновения
-			// Проверить!!!
-			function hideSquare() {
-				let square;
-				gameArea.innerHTML += `<img src="/img/obj_square${square}.png" onclick="this.style.display = 'none'"> `;
-				// square.hidden = true;
-				// square.style.display = "none";
-				game.scores = game.scores + 1;
+				game.inPlay = false;
+				cancelAnimationFrame(game.raf);
+				updateGameState();
 			}
-			// ДОПИСАТЬ!!! Обновление счета
-			function updateScore() {
-				const temp = `Ваш счет: ${game.scores} очков!`;
-				game.scoreBoard.textContent = temp;
+			// обновляем счет и жзни
+			function updateGameState() {
+				gameEl.querySelector(".scores").textContent = game.scores;
+				gameEl.querySelector(".lifes").textContent = game.lifes;
+				gameStartStopEl.textContent = game.inPlay ? "Stop" : "Play";
 			}
-			// Проверить!!! если игрок нажимает не на квадрат, объект исчезант и минус 1 жизнь
-			function wrongClick() {
-				let round;
-				let triangle;
-				gameArea.innerHTML += `<img src="/img/obj_round${round}.png" onclick="this.style.display = 'none'">`;
-				gameArea.innerHTML += `<img src="/img/obj_trian${triangle}.png" onclick="this.style.display = 'none'">`;
-				if (gameLife > 0) {
-					gameLife = gameLife - 1;
-					alert("Упс! Вы промахнулись! -1 жизнь...");
+
+			// переключаем кнопку вкл.-выкл. игры
+			gameStartStopEl.addEventListener("click", () => {
+				if (game.inPlay) {
+					stopGame();
 				} else {
-					alert("Вы проиграли!");
+					startGame();
 				}
-			}
-
-			// ДОПИСАТЬ!!! вывод жизней на экран
-
-			// Готово: функция рандома
-			function getRandom(min, max) {
-				return Math.random() * (max - min) + min;
-			}
-
-			// Готово: функция создания нового элемента
-			function createNewElement(parent, ele, html, myClass) {
-				const el = document.createElement(ele);
-				el.classList.add(myClass);
-				el.innerHTML = html;
-				parent.append(el);
-				return el;
-			}
+			});
 		</script>
 	</body>
 </html>
